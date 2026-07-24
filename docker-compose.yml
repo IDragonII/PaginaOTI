@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    container_name: oti-db
+    environment:
+      POSTGRES_DB: oti_admin
+      POSTGRES_USER: oti_admin
+      POSTGRES_PASSWORD: admin_secure_pass_2026
+    networks:
+      oti-net:
+        ipv4_address: 10.1.20.21
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+
+  app:
+    build: .
+    container_name: oti-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      oti-net:
+        ipv4_address: 10.1.20.22
+    volumes:
+      - ./assets/img/notis:/usr/local/tomcat/webapps/ROOT/assets/img/notis
+      - ./assets/img/pers:/usr/local/tomcat/webapps/ROOT/assets/img/pers
+      - ./assets/img/config:/usr/local/tomcat/webapps/ROOT/assets/img/config
+      - ./assets/img/firma:/usr/local/tomcat/webapps/ROOT/assets/img/firma
+      - ./assets/img/servs:/usr/local/tomcat/webapps/ROOT/assets/img/servs
+      - ./assets/img/docs:/usr/local/tomcat/webapps/ROOT/assets/img/docs
+
+networks:
+  oti-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.1.20.0/24
+
+volumes:
+  pgdata:

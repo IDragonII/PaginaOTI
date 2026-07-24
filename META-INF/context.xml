@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="">
+    <!-- API tickets -->
+    <Parameter name="OTI_API_KEY" 
+                value="fka_PH6qJatXzsvQoEeCrf45r8Fi1JsehhGifYVqqcGRC0cB" 
+                description="Clave API para servicios externos"
+                override="false"/>
+    <Parameter name="OTI_API_BASE" 
+                value="http://host.docker.internal:8000" 
+                description="URL base de la API externa"
+                override="false"/>
+
+    <!-- DataSource Admin BD -->
+    <Resource name="jdbc/OtiAdminDB" 
+        auth="Container" type="javax.sql.DataSource"
+        driverClassName="org.postgresql.Driver"
+        url="jdbc:postgresql://db:5432/oti_admin"
+        username="oti_admin" password="admin_secure_pass_2026"
+        maxTotal="20" maxIdle="10" maxWaitMillis="-1"
+        validationQuery="SELECT 1" testOnBorrow="true"/>
+</Context>
