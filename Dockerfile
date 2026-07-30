@@ -10,6 +10,7 @@ COPY documentacion.jsp /usr/local/tomcat/webapps/ROOT/
 COPY unidades.jsp /usr/local/tomcat/webapps/ROOT/
 COPY servicios.jsp /usr/local/tomcat/webapps/ROOT/
 COPY firmaUNA.jsp /usr/local/tomcat/webapps/ROOT/
+COPY historia-oti.jsp /usr/local/tomcat/webapps/ROOT/
 
 # Compilar Java (models, controllers, base) usando servlet-api de Tomcat
 RUN cd /usr/local/tomcat/webapps/ROOT && \

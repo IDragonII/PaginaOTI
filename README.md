@@ -29,12 +29,12 @@ docker-compose up --build -d
 Los siguientes directorios se montan desde el host para que las subidas de imágenes persistan entre rebuilds:
 
 ```
-./assets/img/notis    → /assets/img/notis    (actividades/noticias)
-./assets/img/pers     → /assets/img/pers     (plana directiva)
-./assets/img/config   → /assets/img/config   (logo, favicon, hero)
-./assets/img/firma    → /assets/img/firma    (instaladores FirmaUNA)
-./assets/img/servs    → /assets/img/servs    (servicios)
-./assets/img/docs     → /assets/img/docs     (documentación PDF)
+./assets/img/notis  → /assets/img/notis   (actividades/noticias)
+./assets/img/pers   → /assets/img/pers    (plana directiva)
+./assets/img/config → /assets/img/config  (logo, favicon, hero)
+./assets/img/firma  → /assets/img/firma   (instaladores FirmaUNA)
+./assets/img/servs  → /assets/img/servs   (servicios)
+./assets/img/docs   → /assets/img/docs    (documentación PDF)
 ```
 
 ### Logs y debugging
@@ -69,7 +69,9 @@ docker build -t paginaoti-app .
 ```
 
 ### 2. Configurar `META-INF/context.xml` (producción)
-Editar **antes de empaquetar** o sobrescribir en `$CATALINA_HOME/webapps/ROOT/META-INF/context.xml`:
+Edita antes de empaquetar o sobrescribe en `$CATALINA_HOME/webapps/ROOT/META-INF/context.xml`:
+
+> **Nota**: Usa `type="javax.sql.DataSource"` (API del JDK `java.sql`). El nombre `jakarta.sql.DataSource` **no es correcto** para Tomcat/JNDI — causaba `NamingException` y fue revertido.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -129,10 +131,11 @@ server {
 | Variable | Desarrollo | Producción |
 |---|---|---|
 | `POSTGRES_PASSWORD` | `admin_secure_pass_2026` | **Password fuerte único** (20+ chars) |
-| `OTI_API_KEY` | `fka_PH6qJatXzsvQoEeCrf45r8Fi1JsehhGifYVqqcGRC0cB` | **Key real de API tickets** |
+| `OTI_API_KEY` | API key real de tickets | **Key real de API tickets** |
 | `OTI_API_BASE` | `http://host.docker.internal:8000` | `https://api.tu-dominio.com` |
 | `context.xml url` | `jdbc:postgresql://db:5432/oti_admin` | `jdbc:postgresql://<DB_HOST>:5432/oti_admin` |
 | `context.xml password` | `admin_secure_pass_2026` | **Mismo password seguro de BD** |
+| `context.xml type` | `javax.sql.DataSource` (correcto, API del JDK) | `javax.sql.DataSource` (correcto) |
 
 ### Backup de base de datos
 ```bash
@@ -152,27 +155,60 @@ ROOT/
 ├── index.jsp              # Entry point → forward a BaseController
 ├── solicitud.jsp          # Formulario unificado tickets/solicitudes
 ├── documentacion.jsp      # Página documentación (ISO 27001, Ley 29733)
-├── unidades.jsp           # Página unidades/subunidades
-├── servicios.jsp          # Página servicios (legacy, no usada en home)
 ├── firmaUNA.jsp           # Página pública descargas FirmaUNA
+├── historia-oti.jsp       # Página historia OTI (timeline + jefaturas)
+├── servicios.jsp          # Página servicios (legacy, no usada en home)
+├── unidades.jsp           # Página unidades/subunidades
 ├── views/
 │   ├── web.jsp            # Layout principal (header, nav, footer, hero 3D)
 │   ├── lay*.jsp           # Capas hijas (home, servicios, noticias, equipo, etc.)
-│   ├── layFirmaUNA.jsp    # Vista dedicada FirmaUNA
-│   └── adm/               # Vistas admin (CRUDs, login, dashboard)
+│   │   ├── layHistoria.jsp
+│   │   ├── layFirmaUNA.jsp
+│   │   ├── layDocumentacion.jsp
+│   │   ├── layServicios.jsp
+│   │   ├── laySolicitud.jsp
+│   │   ├── layTicket.jsp
+│   │   └── layUnidades.jsp
+│   ├── api/               # Proxies server-side para API externa
+│   │   ├── crear-ticket.jsp
+│   │   ├── persona-dni.jsp
+│   │   ├── ticket-pdf.jsp
+│   │   └── tipo-solicitudes.jsp
+│   └── adm/               # Vistas admin
+│       ├── layout.jsp     # Sidebar admin + toggle responsive
+│       ├── login.jsp      # Login glassmorphism
+│       ├── dashboard.jsp
+│       ├── configuracion/index.jsp
+│       ├── actividades/list.jsp
+│       ├── plana-directiva/list.jsp
+│       ├── servicios/list.jsp
+│       ├── unidades/list.jsp
+│       ├── documentos/list.jsp
+│       └── usuarios/list.jsp
 ├── assets/
-│   ├── css/main.css       # Estilos globales + admin.css + mountain.css
+│   ├── css/
+│   │   ├── main.css       # Estilos globales + secciones dark/light
+│   │   ├── admin.css      # Panel admin responsivo (grid, card view)
+│   │   └── menu.css       # Estilos del menú lateral
 │   ├── js/
+│   │   ├── main.js
 │   │   └── mountain-scene.js   # Three.js hero 3D (wireframe + puntos + estrellas)
 │   ├── vendor/            # Bootstrap 5, AOS, GLightbox, Swiper (CDN/local)
-│   └── img/               # Imágenes estáticas + subidas (notis, pers, config, firma, servs, docs)
+│   └── img/               # Imágenes estáticas + subidas
+│       ├── notis/         # Actividades/noticias (persistencia dev)
+│       ├── pers/          # Plana directiva (persistencia dev)
+│       ├── config/        # Logo, favicon, hero image (persistencia dev)
+│       ├── firma/         # Instaladores FirmaUNA (persistencia dev)
+│       ├── servs/         # Iconos/imágenes servicios (persistencia dev)
+│       └── docs/          # Documentación PDF (persistencia dev)
 ├── WEB-INF/
 │   ├── web.xml            # Servlet config, JxRouter, BaseController, AssetxController
 │   ├── jx.tld             # Taglib custom <jx:forEach>, <jx:if>
 │   ├── classes/jxmvc/     # Clases compiladas (controllers, models, utils, base)
-│   └── lib/               # JARs: postgresql, jbcrypt, json
+│   └── lib/               # JARs: postgresql, jbcrypt, json, openPDF, mail
 ├── META-INF/
-│   └── context.xml        # JNDI DataSource + API params
+│   ├── context.xml        # JNDI DataSource + API params (javax.sql.DataSource)
+│   └── MANIFEST.MF
 ├── db-init/
 │   └── 01-create-admin-db.sql   # Schema + seed (admin, unidades, servicios, actividades, plana, config, documentos, enlaces)
 ├── docker-compose.yml     # Dev: app + db + volumes + red oti-net
@@ -191,16 +227,22 @@ ROOT/
 | **BD** | PostgreSQL 16, JDBC, JNDI DataSource |
 | **Frontend** | JSP + Bootstrap 5 + AOS + GLightbox + Swiper + Three.js (CDN) |
 | **Auth Admin** | Session-based + BCrypt (jBCrypt 0.4) |
+| **PDF** | OpenPDF 1.3 for ticket-pdf generation |
 | **Build/Deploy** | Docker Compose (dev), WAR + Tomcat nativo (prod) |
 
 ---
 
 ## 📝 Notas Importantes
 
-- **Header/Footer**: Definidos en `views/web.jsp`. El hero usa Three.js (`mountain-scene.js`).
-- **Carrusel Servicios**: Swiper horizontal responsive (1 slide mobile, 2-3 desktop). Auto-play solo si >3 slides totales.
-- **Secciones alternadas**: Colores `#0f172a` (oscuro) / `#f8fafc` (clase `.section-dark` / `.section-light`).
-- **Subida imágenes**: Diferida (solo al guardar). Validación: 5MB, JPG/PNG/WebP/GIF (instaladores 200MB, extensiones permitidas).
-- **Admin panel**: Sidebar colapsable (desktop) / overlay (móvil). Tablas responsive con vista tarjeta en móvil.
-- **API Tickets**: Proxy server-side en `views/api/` (`persona-dni.jsp`, `tipo-solicitudes.jsp`, `crear-ticket.jsp`). API Key en `context.xml`.
+- **Header/Footer**: Definidos en `views/web.jsp`. El hero usa Three.js (`mountain-scene.js`) con escena de montañas generativas (Perlin noise), wireframe de puntos animados + estrellas con twinkle.
+- **Colores alternados**: Secciones alternan entre oscuro (`#0f172a`, `.section-dark`) y claro (`#f8fafc`, `.section-light`). Hero=dark, Actividades=light, Servicios=dark, Equipo=light, Footer=dark.
+- **Carrusel Servicios**: Swiper horizontal responsive (1 slide mobile, 2-3 desktop). Slide fijo "Tramitar solicitud" (gradiente cyan) + slides de servicios de BD. Autoplay solo si >3 slides totales.
+- **Carrusel Plana Directiva**: Cilindro 3D con `rotateY` + `translateZ` (inspirado en coverflow). Drag + flechas + dots + autoplay 4s. 5 visible desktop, 3 tablet, 1 móvil.
+- **Subida imágenes**: Diferida (solo al guardar). Validación: 5MB, JPG/PNG/WebP/GIF. Instaladores FirmaUNA: 200MB, extensiones específicas.
+- **Enlaces normalizados**: Tabla `enlaces` con FK en `actividades`, `servicios`, `unidades`. Admin UI con 3 campos: URL, texto del botón, abrir en nueva pestaña.
+- **Panel admin**: Sidebar colapsable (desktop) / overlay (móvil). Tablas responsive con vista de tarjeta en móvil (≤768px). CSS Grid layout + columnas compactas.
+- **API Tickets**: Proxy server-side en `views/api/` (`persona-dni.jsp`, `tipo-solicitudes.jsp`, `crear-ticket.jsp`, `ticket-pdf.jsp`). API Key en `context.xml`.
+- **Subida PDFs**: `views/api/` proxy protege la API key; `Documento.java` CRUD con upload de PDF (max 10MB) a `assets/img/docs/`.
+- **Seguridad**: Password BCrypt real (`jBCrypt 0.4`) sin fallback; `javax.sql.DataSource` es correcto para JNDI (API del JDK, no se renombró a `jakarta.sql.DataSource`).
 - **Sin `.env`**: Configuración en `docker-compose.yml` (dev) y `context.xml` (prod).
+- **Volúmenes dev**: Solo para desarrollo local (`./assets/img/*` montados en container). En producción, imágenes en filesystem del servidor.

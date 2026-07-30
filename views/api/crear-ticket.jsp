@@ -21,6 +21,7 @@
     String tipoCuenta = null;
     String sistemaEspecifico = null;
     String correoPersonal = null;
+    String telefono = null;
     String oficinaSoporte = null;
     String dificultad = null;
     String adjuntosUrl = null;
@@ -46,6 +47,8 @@
                 sistemaEspecifico = new String(part.getInputStream().readAllBytes(), "UTF-8").trim();
             } else if ("correo_personal".equals(name)) {
                 correoPersonal = new String(part.getInputStream().readAllBytes(), "UTF-8").trim();
+            } else if ("telefono".equals(name)) {
+                telefono = new String(part.getInputStream().readAllBytes(), "UTF-8").trim();
             } else if ("oficina_sopporte".equals(name)) {
                 oficinaSoporte = new String(part.getInputStream().readAllBytes(), "UTF-8").trim();
             } else if ("dificultad".equals(name)) {
@@ -120,6 +123,12 @@
         headerBuilder.append("--").append(boundary).append("\r\n");
         headerBuilder.append("Content-Disposition: form-data; name=\"correo_personal\"\r\n\r\n");
         headerBuilder.append(correoPersonal).append("\r\n");
+    }
+
+    if (telefono != null && !telefono.isEmpty()) {
+        headerBuilder.append("--").append(boundary).append("\r\n");
+        headerBuilder.append("Content-Disposition: form-data; name=\"telefono\"\r\n\r\n");
+        headerBuilder.append(telefono).append("\r\n");
     }
 
     if (oficinaSoporte != null && !oficinaSoporte.isEmpty()) {

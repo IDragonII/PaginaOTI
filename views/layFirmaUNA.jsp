@@ -8,9 +8,9 @@
     String pVideoMac = Configuracion.getValue("firma_video_mac", "");
     String pFirmaPeru = Configuracion.getValue("url_firmaperu", "");
     String pWinFile = pWinUrl.isEmpty() ? "" : pWinUrl.substring(pWinUrl.lastIndexOf('/') + 1);
-    String pLinuxFile = pLinuxUrl.isEmpty() ? "" : pLinuxUrl.substring(pLinuxUrl.lastIndexOf('/') + 1);
-    String pMacFile = pMacUrl.isEmpty() ? "" : pMacUrl.substring(pMacUrl.lastIndexOf('/') + 1);
 %>
+
+<style>.layer-wrapper { padding: 80px 0; }</style>
 
 <div>
     <h1> FirmaUNA - Software de Firma Digital </h1>

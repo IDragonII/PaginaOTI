@@ -46,12 +46,20 @@
     // --- Pre-compute slide 2 ---
     String slide2Img = "";
     String slide2Alt = "Actividad OTI";
+    String slide2Title = "Bienvenidos a la OTI";
+    String slide2Rol = "Institucional";
+    String slide2Desc = "Oficina de Tecnologias de la Informacion - UNA Puno";
+    String slide2Link = request.getContextPath() + "/";
     boolean foundFirst = false;
     for (Actividad a : actividadesDB) {
         if (!a.activo) continue;
         if (!foundFirst) { foundFirst = true; continue; }
         if (a.imagenUrl != null && !a.imagenUrl.isEmpty()) slide2Img = a.imagenUrl;
         slide2Alt = a.titulo != null ? a.titulo : "";
+        slide2Title = a.titulo != null ? a.titulo : "";
+        slide2Rol = (a.tipo != null && !a.tipo.isEmpty()) ? a.tipo : "Actividad";
+        slide2Desc = a.descripcion != null ? a.descripcion : "";
+        slide2Link = (a.enlaceUrl != null && !a.enlaceUrl.isEmpty()) ? a.enlaceUrl : request.getContextPath() + "/";
         break;
     }
 
@@ -90,7 +98,20 @@
     request.setAttribute("_slide1Link", slide1Link);
     request.setAttribute("_slide2Img", slide2Img);
     request.setAttribute("_slide2Alt", slide2Alt);
+    request.setAttribute("_slide2Title", slide2Title);
+    request.setAttribute("_slide2Rol", slide2Rol);
+    request.setAttribute("_slide2Desc", slide2Desc);
+    request.setAttribute("_slide2Link", slide2Link);
     request.setAttribute("_actJS", actJS.toString());
+
+    // --- Pre-compute slides JS array for overlap carousel ---
+    StringBuilder slidesJS = new StringBuilder();
+    slidesJS.append("[");
+    slidesJS.append("{t:\"").append(slide1Title.replace("\"", "\\\"")).append("\",r:\"").append(slide1Rol.replace("\"", "\\\"")).append("\",d:\"").append(slide1Desc.replace("\"", "\\\"")).append("\",l:\"").append(slide1Link.replace("\"", "\\\"")).append("\"}");
+    slidesJS.append(",");
+    slidesJS.append("{t:\"").append(slide2Title.replace("\"", "\\\"")).append("\",r:\"").append(slide2Rol.replace("\"", "\\\"")).append("\",d:\"").append(slide2Desc.replace("\"", "\\\"")).append("\",l:\"").append(slide2Link.replace("\"", "\\\"")).append("\"}");
+    slidesJS.append("]");
+    request.setAttribute("_slidesJS", slidesJS.toString());
 
     // --- Pre-compute team data as JS array for cylinder carousel ---
     StringBuilder teamJS = new StringBuilder();
@@ -195,56 +216,71 @@
         <img src="<%= Configuracion.getValue("site_logo", "https://oti.unap.edu.pe/recursos/oti-ofic.png") %>" alt="Ir al inicio" style="max-height: 40px;">
       </a>
       
-      <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu" aria-label="Menú">
-                <span class="navbar-toggler-icon" style="background-image: url(&quot;data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%230891B2' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e&quot;);"></span>
-            </button>            
-            <!--
-            <img src="<%= Configuracion.getValue("site_logo", "https://oti.unap.edu.pe/recursos/oti-ofic.png") %>" height=32 alt="">
-            -->
+      <nav class="header-nav">
+        <ul class="header-nav-links">
+          <li><a href="/">Inicio</a></li>
+          <li><a href="/unidades.jsp">Unidades</a></li>
+          <li><a href="/!/historia-oti">Resena Historica</a></li>
+          <li><a href="http://cursosoti.unap.edu.pe">Cursos</a></li>
+          <li><a href="/documentacion.jsp">Documentacion</a></li>
+        </ul>
+      </nav>
 
-            <div class="collapse navbar-collapse" id="navbarMenu">
-                <ul class="navbar-nav me-auto">
-                
-                    <!-- Elementos NO desplegables -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            Inicio
-                        </a>
-                    </li>
-                
-                    <!-- Elementos NO desplegables -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="/unidades.jsp">
-                            Unidades
-                        </a>
-                    </li>
+      <button class="hamburger-btn" id="menuToggle" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
 
-                    <!-- Elementos NO desplegables -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="/!/historia-oti">
-                            Reseña Histórica
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="http://cursosoti.unap.edu.pe">
-                            Cursos
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="/documentacion.jsp">
-                            Documentacion
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        
-    </nav>
+    <!-- Sidebar Drawer -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar-drawer" id="sidebarDrawer">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Menu</span>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Cerrar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="/" class="sidebar-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          Inicio
+        </a></li>
+        <li><a href="/unidades.jsp" class="sidebar-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Unidades
+        </a></li>
+        <li><a href="/!/historia-oti" class="sidebar-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Resena Historica
+        </a></li>
+        <li><a href="http://cursosoti.unap.edu.pe" class="sidebar-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          Cursos
+        </a></li>
+        <li><a href="/documentacion.jsp" class="sidebar-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          Documentacion
+        </a></li>
+      </ul>
+    </div>
+
+    <script>
+    (function(){
+      var toggle = document.getElementById('menuToggle');
+      var overlay = document.getElementById('sidebarOverlay');
+      var drawer = document.getElementById('sidebarDrawer');
+      var close = document.getElementById('sidebarClose');
+      function openMenu() { overlay.classList.add('active'); drawer.classList.add('active'); document.body.style.overflow = 'hidden'; }
+      function closeMenu() { overlay.classList.remove('active'); drawer.classList.remove('active'); document.body.style.overflow = ''; }
+      toggle.addEventListener('click', openMenu);
+      close.addEventListener('click', closeMenu);
+      overlay.addEventListener('click', closeMenu);
+      drawer.querySelectorAll('.sidebar-link').forEach(function(link) {
+        link.addEventListener('click', closeMenu);
+      });
+    })();
+    </script>
 
       <!--
       <nav id="navmenu" class="navmenu">
@@ -272,11 +308,9 @@
       -->
 
       <!-- con Jx falla con vars locales -->
-      <% if( ! IsMobile ) { %>
-        <a class="btn-getstarted" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#dlgAviso" style="background: linear-gradient(135deg, #0891B2, #06B6D4); color: white; font-size: 13px; padding: 8px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(8, 145, 178, 0.25);"> 
-          FirmaUNA 
-        </a>
-      <% } %> 
+      <a class="btn-getstarted" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#dlgAviso" style="background: linear-gradient(135deg, #0891B2, #06B6D4); color: white; font-size: 13px; padding: 8px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 15px rgba(8, 145, 178, 0.25);"> 
+        FirmaUNA 
+      </a>
       
 
 
@@ -288,7 +322,7 @@
     <!-- Layered web page, don't need send args all of them are in 'request' -->
     <jx:if test="${IsLayerFile}">
     
-        <section class="section" style="padding-top: 200px; background: white">
+        <section class="section layer-wrapper">
             <div class="container" data-aos="fade-up" data-aos-delay="100">
 
                 <jsp:include page="/views/${ChildLayer}.jsp" />
@@ -448,7 +482,136 @@
          </div>
 
        </div>
-     </section>
+       </section>
+
+       <!-- Overlap Carousel Script -->
+       <script>
+       (function() {
+         var slides = ${_slidesJS};
+         if (!slides || slides.length === 0) return;
+
+         var stage = document.getElementById('otiStage');
+         var card = document.getElementById('otiCard');
+         var titleEl = document.getElementById('otiTitle');
+         var roleEl = document.getElementById('otiRole');
+         var descEl = document.getElementById('otiDesc');
+         var linkEl = document.getElementById('otiLink');
+         var dotsWrap = document.getElementById('otiDots');
+         var prevBtn = document.getElementById('otiPrev');
+         var nextBtn = document.getElementById('otiNext');
+         var slideEls = stage.querySelectorAll('.oti-overlap-slide');
+
+         var cardEls = [titleEl, roleEl, descEl, linkEl];
+         var current = 0;
+         var total = slides.length;
+         var autoTimer = null;
+         var isAnimating = false;
+
+         function showCard(stagger) {
+           cardEls.forEach(function(el, i) {
+             setTimeout(function() {
+               el.style.opacity = '1';
+               el.style.transform = 'translateY(0)';
+             }, stagger ? i * 60 : 0);
+           });
+         }
+
+         function hideCard(cb) {
+           var maxDelay = 0;
+           cardEls.forEach(function(el, i) {
+             var delay = i * 40;
+             if (delay > maxDelay) maxDelay = delay;
+             setTimeout(function() {
+               el.style.opacity = '0';
+               el.style.transform = 'translateY(12px)';
+             }, delay);
+           });
+           setTimeout(cb, maxDelay + 180);
+         }
+
+         function buildDots() {
+           dotsWrap.innerHTML = '';
+           for (var i = 0; i < total; i++) {
+             var dot = document.createElement('button');
+             dot.className = 'oti-overlap-dot' + (i === 0 ? ' active' : '');
+             dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+             dot.dataset.index = i;
+             dot.addEventListener('click', function() { goTo(parseInt(this.dataset.index)); });
+             dotsWrap.appendChild(dot);
+           }
+         }
+
+         function updateDots() {
+           var dots = dotsWrap.querySelectorAll('.oti-overlap-dot');
+           dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+         }
+
+         function goTo(index) {
+           if (isAnimating || index === current) return;
+           isAnimating = true;
+
+           // Toggle dir-swapped
+           stage.classList.toggle('dir-swapped', index % 2 === 1);
+
+           hideCard(function() {
+             // Swap slides
+             slideEls[current].classList.remove('active');
+             current = index;
+             slideEls[current].classList.add('active');
+
+             // Update card content
+             var s = slides[current];
+             titleEl.textContent = s.t;
+             roleEl.textContent = s.r;
+             descEl.textContent = s.d;
+             linkEl.href = s.l;
+
+             updateDots();
+
+             // Staggered fade in
+             showCard(true);
+
+             setTimeout(function() { isAnimating = false; }, 400);
+           });
+         }
+
+         function next() { goTo((current + 1) % total); }
+         function prev() { goTo((current - 1 + total) % total); }
+
+         function startAutoPlay() {
+           stopAutoPlay();
+           autoTimer = setInterval(next, 5000);
+         }
+         function stopAutoPlay() {
+           if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+         }
+
+         prevBtn.addEventListener('click', function() { prev(); resetAutoPlay(); });
+         nextBtn.addEventListener('click', function() { next(); resetAutoPlay(); });
+
+         function resetAutoPlay() { stopAutoPlay(); startAutoPlay(); }
+
+         // Touch/swipe support
+         var touchStartX = 0;
+         stage.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+         stage.addEventListener('touchend', function(e) {
+           var diff = touchStartX - e.changedTouches[0].clientX;
+           if (Math.abs(diff) > 50) {
+             if (diff > 0) next(); else prev();
+             resetAutoPlay();
+           }
+         }, { passive: true });
+
+         // Pause on hover
+         stage.addEventListener('mouseenter', stopAutoPlay);
+         stage.addEventListener('mouseleave', startAutoPlay);
+
+         // Init: staggered reveal on load
+         buildDots();
+         showCard(true);
+         startAutoPlay();
+       })();
+       </script>
 
       <!-- Team Section -->
       <section id="team" class="team section section-light">

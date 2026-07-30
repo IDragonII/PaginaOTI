@@ -5,6 +5,8 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
+<style>.layer-wrapper { padding: 80px 0; }</style>
+
 <div>
     <h1> Servicios de la OTI </h1>
 </div>
