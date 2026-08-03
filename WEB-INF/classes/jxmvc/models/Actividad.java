@@ -1,6 +1,7 @@
 package jxmvc.models;
 
 import jxmvc.base.AdminDB;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -12,6 +13,7 @@ public class Actividad {
     public String tipo;
     public String descripcion;
     public String imagenUrl;
+    public Date fecha;
     public int enlaceId;
     public String enlaceUrl;
     public String enlaceTexto;
@@ -28,6 +30,7 @@ public class Actividad {
         a.tipo = rs.getString("tipo");
         a.descripcion = rs.getString("descripcion");
         a.imagenUrl = rs.getString("imagen_url");
+        a.fecha = rs.getDate("fecha");
         a.enlaceId = rs.getInt("enlace_id");
         a.enlaceUrl = rs.getString("e_url");
         a.enlaceTexto = rs.getString("e_descripcion");
@@ -67,17 +70,17 @@ public class Actividad {
 
     public static int create(Actividad a) {
         return AdminDB.insertAndGetKey(
-            "INSERT INTO actividades (titulo, tipo, descripcion, imagen_url, enlace_id, orden, activo) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            a.titulo, a.tipo, a.descripcion, a.imagenUrl, a.enlaceId > 0 ? a.enlaceId : null, a.orden, a.activo
+            "INSERT INTO actividades (titulo, tipo, descripcion, fecha, imagen_url, enlace_id, orden, activo) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            a.titulo, a.tipo, a.descripcion, a.fecha, a.imagenUrl, a.enlaceId > 0 ? a.enlaceId : null, a.orden, a.activo
         );
     }
 
     public static void update(Actividad a) {
         AdminDB.execute(
-            "UPDATE actividades SET titulo=?, tipo=?, descripcion=?, imagen_url=?, enlace_id=?, " +
+            "UPDATE actividades SET titulo=?, tipo=?, descripcion=?, fecha=?, imagen_url=?, enlace_id=?, " +
             "orden=?, activo=?, updated_at=NOW() WHERE id=?",
-            a.titulo, a.tipo, a.descripcion, a.imagenUrl, a.enlaceId > 0 ? a.enlaceId : null, a.orden, a.activo, a.id
+            a.titulo, a.tipo, a.descripcion, a.fecha, a.imagenUrl, a.enlaceId > 0 ? a.enlaceId : null, a.orden, a.activo, a.id
         );
     }
 

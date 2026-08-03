@@ -266,7 +266,6 @@
 
 <script>
 var personaData = null;
-var correoPersonalAPI = null;
 
 window.addEventListener('DOMContentLoaded', function() {
     cargarTipos();
@@ -330,21 +329,9 @@ function consultarDNI() {
                     return;
                 }
                 if (personaData.correos && Array.isArray(personaData.correos)) {
-                    var personal = personaData.correos.find(function(c) { return c.tipo === 'PERSONAL'; });
-                    if (personal && personal.correo) {
-                        correoPersonalAPI = personal.correo;
-                        var el = document.getElementById('correoPersonal');
-                        if (el) el.value = personal.correo;
-                    } else {
-                        correoPersonalAPI = null;
-                    }
-                } else {
-                    correoPersonalAPI = null;
+                    // Correo siempre se pide al usuario
                 }
                 var telEl = document.getElementById('telefonoPersonal');
-                if (telEl && res.body.data.telefono) {
-                    telEl.value = res.body.data.telefono;
-                }
                 var nombres = (res.body.data.nombres || '').split(' ')[0];
                 var apellidos = (res.body.data.apellidos || '').split(' ')[0];
                 document.getElementById('personaNombre').textContent = nombres + ' ' + apellidos;
@@ -445,13 +432,6 @@ document.getElementById('cboTipo').addEventListener('change', function() {
     var isSoporte = nombre === 'SOPORTE TECNICO';
 
     document.getElementById('correoFields').style.display = isCorreo ? 'block' : 'none';
-    if (isCorreo && correoPersonalAPI) {
-        document.getElementById('correoPersonal').style.display = 'none';
-        document.getElementById('correoPersonal').previousElementSibling.style.display = 'none';
-    } else {
-        document.getElementById('correoPersonal').style.display = '';
-        document.getElementById('correoPersonal').previousElementSibling.style.display = '';
-    }
     document.getElementById('altaBajaFields').style.display = isAltaBaja ? 'block' : 'none';
     document.getElementById('soporteFields').style.display = isSoporte ? 'block' : 'none';
 
@@ -542,7 +522,7 @@ function enviarSolicitud() {
 
         var correoVisible = document.getElementById('correoFields').style.display !== 'none';
         if (correoVisible) {
-            var correoVal = correoPersonalAPI || document.getElementById('correoPersonal').value.trim();
+            var correoVal = document.getElementById('correoPersonal').value.trim();
             if (!correoVal) {
                 showNotif('info', 'Atencion', 'Ingrese su correo personal');
                 return;
@@ -653,10 +633,7 @@ function limpiarForm() {
 
     document.getElementById('correoFields').style.display = 'none';
     document.getElementById('correoPersonal').value = '';
-    document.getElementById('correoPersonal').style.display = '';
-    document.getElementById('correoPersonal').previousElementSibling.style.display = '';
     document.getElementById('telefonoPersonal').value = '';
-    correoPersonalAPI = null;
     document.getElementById('cboMotivoCorreo').innerHTML = '<option value="" disabled selected> Seleccione </option>' +
         '<option value="CREACION"> Creacion </option>' +
         '<option value="RESTABLECIMIENTO"> Restablecimiento </option>' +

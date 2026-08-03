@@ -286,6 +286,9 @@
     String firmaWin = Configuracion.getValue("firma_windows_url", "");
     String firmaLinux = Configuracion.getValue("firma_linux_url", "");
     String firmaMac = Configuracion.getValue("firma_mac_url", "");
+    String firmaWinName = Configuracion.getValue("firma_windows_name", "");
+    String firmaLinuxName = Configuracion.getValue("firma_linux_name", "");
+    String firmaMacName = Configuracion.getValue("firma_mac_name", "");
     String videoWin = Configuracion.getValue("firma_video_windows", "");
     String videoLinux = Configuracion.getValue("firma_video_linux", "");
     String videoMac = Configuracion.getValue("firma_video_mac", "");
@@ -619,7 +622,7 @@
                             <div class="upload-firma-area <%= firmaWin.isEmpty() ? "" : "has-file" %>" id="firma_windows_url_area" data-key="firma_windows_url">
                                 <% if (!firmaWin.isEmpty()) { %>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                <div class="firma-fname"><%= firmaWin.substring(firmaWin.lastIndexOf('/') + 1) %></div>
+                                <div class="firma-fname"><%= firmaWinName.isEmpty() ? firmaWin.substring(firmaWin.lastIndexOf('/') + 1) : firmaWinName %></div>
                                 <button type="button" class="firma-remove" data-key="firma_windows_url">Quitar</button>
                                 <% } else { %>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -637,7 +640,7 @@
                             <div class="upload-firma-area <%= firmaLinux.isEmpty() ? "" : "has-file" %>" id="firma_linux_url_area" data-key="firma_linux_url">
                                 <% if (!firmaLinux.isEmpty()) { %>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                <div class="firma-fname"><%= firmaLinux.substring(firmaLinux.lastIndexOf('/') + 1) %></div>
+                                <div class="firma-fname"><%= firmaLinuxName.isEmpty() ? firmaLinux.substring(firmaLinux.lastIndexOf('/') + 1) : firmaLinuxName %></div>
                                 <button type="button" class="firma-remove" data-key="firma_linux_url">Quitar</button>
                                 <% } else { %>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -655,7 +658,7 @@
                             <div class="upload-firma-area <%= firmaMac.isEmpty() ? "" : "has-file" %>" id="firma_mac_url_area" data-key="firma_mac_url">
                                 <% if (!firmaMac.isEmpty()) { %>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                <div class="firma-fname"><%= firmaMac.substring(firmaMac.lastIndexOf('/') + 1) %></div>
+                                <div class="firma-fname"><%= firmaMacName.isEmpty() ? firmaMac.substring(firmaMac.lastIndexOf('/') + 1) : firmaMacName %></div>
                                 <button type="button" class="firma-remove" data-key="firma_mac_url">Quitar</button>
                                 <% } else { %>
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>

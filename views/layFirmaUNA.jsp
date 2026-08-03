@@ -7,7 +7,12 @@
     String pVideoLinux = Configuracion.getValue("firma_video_linux", "");
     String pVideoMac = Configuracion.getValue("firma_video_mac", "");
     String pFirmaPeru = Configuracion.getValue("url_firmaperu", "");
-    String pWinFile = pWinUrl.isEmpty() ? "" : pWinUrl.substring(pWinUrl.lastIndexOf('/') + 1);
+    String pWinName = Configuracion.getValue("firma_windows_name", "");
+    String pLinuxName = Configuracion.getValue("firma_linux_name", "");
+    String pMacName = Configuracion.getValue("firma_mac_name", "");
+    String pWinFile = pWinUrl.isEmpty() ? "" : (pWinName.isEmpty() ? pWinUrl.substring(pWinUrl.lastIndexOf('/') + 1) : pWinName);
+    String pLinuxFile = pLinuxUrl.isEmpty() ? "" : (pLinuxName.isEmpty() ? pLinuxUrl.substring(pLinuxUrl.lastIndexOf('/') + 1) : pLinuxName);
+    String pMacFile = pMacUrl.isEmpty() ? "" : (pMacName.isEmpty() ? pMacUrl.substring(pMacUrl.lastIndexOf('/') + 1) : pMacName);
 %>
 
 <style>.layer-wrapper { padding: 80px 0; }</style>

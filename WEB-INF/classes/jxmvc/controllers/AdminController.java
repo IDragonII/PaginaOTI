@@ -303,6 +303,10 @@ public class AdminController extends HttpServlet {
         a.titulo = request.getParameter("titulo");
         a.tipo = request.getParameter("tipo");
         a.descripcion = request.getParameter("descripcion");
+        String fechaParam = request.getParameter("fecha");
+        if (fechaParam != null && !fechaParam.isEmpty()) {
+            a.fecha = java.sql.Date.valueOf(fechaParam);
+        }
         String newImageUrl = request.getParameter("imagen_url");
         if (newImageUrl == null) newImageUrl = "";
         a.orden = Integer.parseInt(request.getParameter("orden") != null ? request.getParameter("orden") : "0");
@@ -852,6 +856,7 @@ public class AdminController extends HttpServlet {
                 String old = firmaOld.get(fk);
                 if (old != null && !old.isEmpty()) {
                     FileStorage.deleteFile(old);
+                    Configuracion.update(fk.replace("_url", "_name"), "");
                 }
             }
         }
@@ -907,6 +912,9 @@ public class AdminController extends HttpServlet {
                 if (!old.isEmpty() && !old.equals(url)) {
                     FileStorage.deleteFile(old);
                 }
+                String nameKey = key.replace("_url", "_name");
+                String originalName = file.getSubmittedFileName();
+                Configuracion.update(nameKey, originalName);
                 response.getWriter().write("{\"url\":\"" + url + "\"}");
             } else {
                 response.getWriter().write("{\"error\":\"Upload failed\"}");
@@ -936,6 +944,9 @@ public class AdminController extends HttpServlet {
             if (!url.isEmpty()) {
                 FileStorage.deleteImage(url);
                 Configuracion.update(key, "");
+                if (key.startsWith("firma_")) {
+                    Configuracion.update(key.replace("_url", "_name"), "");
+                }
             }
         }
         response.getWriter().write("{\"ok\":true}");

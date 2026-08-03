@@ -44,6 +44,7 @@
                         <th style="width: 56px;">Img</th>
                         <th>Titulo</th>
                         <th style="width: 110px;">Tipo</th>
+                        <th style="width: 100px;">Fecha</th>
                         <th class="col-desc">Descripcion</th>
                         <th class="col-enlace" style="width: 70px;">Enlace</th>
                         <th style="width: 80px;">Estado</th>
@@ -73,6 +74,9 @@
                         <td data-label="Tipo">
                             <span class="badge-status badge-active" style="font-size: 0.65rem; padding: 2px 8px;"><%= a.tipo != null ? a.tipo : "inst." %></span>
                         </td>
+                        <td data-label="Fecha" style="font-size: 0.78rem;">
+                            <%= a.fecha != null ? a.fecha.toString() : "-" %>
+                        </td>
                         <td data-label="Descripcion" class="col-desc">
                             <span class="table-text-truncate" style="max-width: 220px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--default-color);"><%= a.descripcion != null ? a.descripcion : "" %></span>
                         </td>
@@ -98,6 +102,7 @@
                                     data-tipo="<%= a.tipo != null ? a.tipo : "" %>"
                                     data-descripcion="<%= a.descripcion != null ? a.descripcion : "" %>"
                                     data-imagen-url="<%= a.imagenUrl != null ? a.imagenUrl : "" %>"
+                                    data-fecha="<%= a.fecha != null ? a.fecha.toString() : "" %>"
                                     data-enlace-url="<%= a.enlaceUrl != null ? a.enlaceUrl : "" %>"
                                     data-enlace-texto="<%= a.enlaceTexto != null ? a.enlaceTexto : "" %>"
                                     data-enlace-nueva-pestana="<%= a.enlaceNuevaPestana %>"
@@ -148,16 +153,16 @@
                     </div>
 
                     <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label" for="formFecha">Fecha</label>
+                                <input type="date" class="form-control" id="formFecha" name="fecha">
+                            </div>
+                        </div>
                         <div class="col-md-8">
                             <div class="form-group">
                                 <label class="form-label" for="formDescripcion">Descripcion</label>
                                 <textarea class="form-control" id="formDescripcion" name="descripcion" rows="3" placeholder="Descripcion breve de la actividad"></textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label class="form-label" for="formOrden">Orden</label>
-                                <input type="number" class="form-control" id="formOrden" name="orden" value="0" min="0">
                             </div>
                         </div>
                     </div>
@@ -185,6 +190,10 @@
                                     <input class="form-check-input" type="checkbox" id="formActivo" name="activo" checked>
                                     <label class="form-check-label form-switch-label" for="formActivo">Activo</label>
                                 </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 8px;">
+                                <label class="form-label" for="formOrden">Orden</label>
+                                <input type="number" class="form-control" id="formOrden" name="orden" value="0" min="0">
                             </div>
                         </div>
                     </div>
@@ -249,6 +258,7 @@ function openModal(btn) {
         document.getElementById('formId').value = btn.dataset.id;
         document.getElementById('formTitulo').value = btn.dataset.titulo || '';
         document.getElementById('formTipo').value = btn.dataset.tipo || '';
+        document.getElementById('formFecha').value = btn.dataset.fecha || '';
         document.getElementById('formDescripcion').value = btn.dataset.descripcion || '';
         document.getElementById('formEnlace').value = btn.dataset.enlaceUrl || '';
         document.getElementById('formEnlaceTexto').value = btn.dataset.enlaceTexto || 'Ver mas';
@@ -269,6 +279,7 @@ function openModal(btn) {
         title.textContent = 'Nueva actividad';
         document.getElementById('actividadForm').reset();
         document.getElementById('formId').value = '';
+        document.getElementById('formFecha').value = '';
         document.getElementById('formOrden').value = '0';
         document.getElementById('formEnlaceTexto').value = 'Ver mas';
         document.getElementById('formEnlaceNuevaPestana').checked = false;

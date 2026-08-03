@@ -2,7 +2,7 @@
 <Context path="">
     <!-- API tickets -->
     <Parameter name="OTI_API_KEY" 
-                value="fka_PH6qJatXzsvQoEeCrf45r8Fi1JsehhGifYVqqcGRC0cB" 
+                value="fka_ByYYnoIctzfoxs67kKKtbkT0TnkE5tj1IW2VCh1Lg3L1" 
                 description="Clave API para servicios externos"
                 override="false"/>
     <Parameter name="OTI_API_BASE" 

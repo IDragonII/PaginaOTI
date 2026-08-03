@@ -29,6 +29,7 @@
     String slide1Rol = "Institucional";
     String slide1Desc = "Oficina de Tecnologias de la Informacion - UNA Puno";
     String slide1Link = request.getContextPath() + "/";
+    String slide1Fecha = "";
     if (actividadesDB.size() > 0) {
         for (Actividad a : actividadesDB) {
             if (a.activo) {
@@ -38,6 +39,7 @@
                 slide1Rol = (a.tipo != null && !a.tipo.isEmpty()) ? a.tipo : "Actividad";
                 slide1Desc = a.descripcion != null ? a.descripcion : "";
                 slide1Link = (a.enlaceUrl != null && !a.enlaceUrl.isEmpty()) ? a.enlaceUrl : request.getContextPath() + "/";
+                slide1Fecha = a.fecha != null ? a.fecha.toString() : "";
                 break;
             }
         }
@@ -50,6 +52,7 @@
     String slide2Rol = "Institucional";
     String slide2Desc = "Oficina de Tecnologias de la Informacion - UNA Puno";
     String slide2Link = request.getContextPath() + "/";
+    String slide2Fecha = "";
     boolean foundFirst = false;
     for (Actividad a : actividadesDB) {
         if (!a.activo) continue;
@@ -60,6 +63,7 @@
         slide2Rol = (a.tipo != null && !a.tipo.isEmpty()) ? a.tipo : "Actividad";
         slide2Desc = a.descripcion != null ? a.descripcion : "";
         slide2Link = (a.enlaceUrl != null && !a.enlaceUrl.isEmpty()) ? a.enlaceUrl : request.getContextPath() + "/";
+        slide2Fecha = a.fecha != null ? a.fecha.toString() : "";
         break;
     }
 
@@ -84,6 +88,7 @@
         actJS.append("titulo:\"").append(a.titulo != null ? a.titulo.replace("\"", "\\\"") : "").append("\",");
         actJS.append("rol:\"").append(a.tipo != null && !a.tipo.isEmpty() ? a.tipo.replace("\"", "\\\"") : "Actividad").append("\",");
         actJS.append("desc:\"").append(a.descripcion != null ? a.descripcion.replace("\"", "\\\"") : "").append("\",");
+        actJS.append("fecha:\"").append(a.fecha != null ? a.fecha.toString() : "").append("\",");
         actJS.append("img:\"").append(a.imagenUrl != null && !a.imagenUrl.isEmpty() ? a.imagenUrl : "").append("\",");
         actJS.append("link:\"").append(a.enlaceUrl != null && !a.enlaceUrl.isEmpty() ? a.enlaceUrl : request.getContextPath() + "/").append("\"");
         actJS.append("}");
@@ -107,9 +112,9 @@
     // --- Pre-compute slides JS array for overlap carousel ---
     StringBuilder slidesJS = new StringBuilder();
     slidesJS.append("[");
-    slidesJS.append("{t:\"").append(slide1Title.replace("\"", "\\\"")).append("\",r:\"").append(slide1Rol.replace("\"", "\\\"")).append("\",d:\"").append(slide1Desc.replace("\"", "\\\"")).append("\",l:\"").append(slide1Link.replace("\"", "\\\"")).append("\"}");
+    slidesJS.append("{t:\"").append(slide1Title.replace("\"", "\\\"")).append("\",r:\"").append(slide1Rol.replace("\"", "\\\"")).append("\",d:\"").append(slide1Desc.replace("\"", "\\\"")).append("\",f:\"").append(slide1Fecha).append("\",l:\"").append(slide1Link.replace("\"", "\\\"")).append("\"}");
     slidesJS.append(",");
-    slidesJS.append("{t:\"").append(slide2Title.replace("\"", "\\\"")).append("\",r:\"").append(slide2Rol.replace("\"", "\\\"")).append("\",d:\"").append(slide2Desc.replace("\"", "\\\"")).append("\",l:\"").append(slide2Link.replace("\"", "\\\"")).append("\"}");
+    slidesJS.append("{t:\"").append(slide2Title.replace("\"", "\\\"")).append("\",r:\"").append(slide2Rol.replace("\"", "\\\"")).append("\",d:\"").append(slide2Desc.replace("\"", "\\\"")).append("\",f:\"").append(slide2Fecha).append("\",l:\"").append(slide2Link.replace("\"", "\\\"")).append("\"}");
     slidesJS.append("]");
     request.setAttribute("_slidesJS", slidesJS.toString());
 
@@ -457,7 +462,7 @@
 
              <!-- Card oscuro -->
              <div class="oti-overlap-card" id="otiCard">
-               <span class="oti-overlap-label">Conoce lo que hacemos</span>
+               <span class="oti-overlap-label" id="otiLabel">${_slide1Fecha}</span>
                <h3 class="oti-overlap-card-title" id="otiTitle">${_slide1Title}</h3>
                <p class="oti-overlap-card-role" id="otiRole">${_slide1Rol}</p>
                <p class="oti-overlap-card-desc" id="otiDesc">${_slide1Desc}</p>
@@ -495,8 +500,9 @@
          var titleEl = document.getElementById('otiTitle');
          var roleEl = document.getElementById('otiRole');
          var descEl = document.getElementById('otiDesc');
-         var linkEl = document.getElementById('otiLink');
-         var dotsWrap = document.getElementById('otiDots');
+          var linkEl = document.getElementById('otiLink');
+          var labelEl = document.getElementById('otiLabel');
+          var dotsWrap = document.getElementById('otiDots');
          var prevBtn = document.getElementById('otiPrev');
          var nextBtn = document.getElementById('otiNext');
          var slideEls = stage.querySelectorAll('.oti-overlap-slide');
@@ -559,12 +565,13 @@
              current = index;
              slideEls[current].classList.add('active');
 
-             // Update card content
-             var s = slides[current];
-             titleEl.textContent = s.t;
-             roleEl.textContent = s.r;
-             descEl.textContent = s.d;
-             linkEl.href = s.l;
+              // Update card content
+              var s = slides[current];
+              titleEl.textContent = s.t;
+              roleEl.textContent = s.r;
+              descEl.textContent = s.d;
+              labelEl.textContent = s.f || '';
+              linkEl.href = s.l;
 
              updateDots();
 
@@ -910,9 +917,12 @@
               String cfgVideoLinux = Configuracion.getValue("firma_video_linux", "");
               String cfgVideoMac = Configuracion.getValue("firma_video_mac", "");
               String cfgFirmaPeru = Configuracion.getValue("url_firmaperu", "");
-              String modalWinFile = cfgWinUrl.isEmpty() ? "No disponible" : cfgWinUrl.substring(cfgWinUrl.lastIndexOf('/') + 1);
-              String modalLinuxFile = cfgLinuxUrl.isEmpty() ? "No disponible" : cfgLinuxUrl.substring(cfgLinuxUrl.lastIndexOf('/') + 1);
-              String modalMacFile = cfgMacUrl.isEmpty() ? "No disponible" : cfgMacUrl.substring(cfgMacUrl.lastIndexOf('/') + 1);
+              String cfgWinName = Configuracion.getValue("firma_windows_name", "");
+              String cfgLinuxName = Configuracion.getValue("firma_linux_name", "");
+              String cfgMacName = Configuracion.getValue("firma_mac_name", "");
+              String modalWinFile = cfgWinUrl.isEmpty() ? "No disponible" : (cfgWinName.isEmpty() ? cfgWinUrl.substring(cfgWinUrl.lastIndexOf('/') + 1) : cfgWinName);
+              String modalLinuxFile = cfgLinuxUrl.isEmpty() ? "No disponible" : (cfgLinuxName.isEmpty() ? cfgLinuxUrl.substring(cfgLinuxUrl.lastIndexOf('/') + 1) : cfgLinuxName);
+              String modalMacFile = cfgMacUrl.isEmpty() ? "No disponible" : (cfgMacName.isEmpty() ? cfgMacUrl.substring(cfgMacUrl.lastIndexOf('/') + 1) : cfgMacName);
             %>
             <div class="row">
               <!-- Columna izquierda: Descargas -->

@@ -54,6 +54,7 @@ CREATE TABLE actividades (
     titulo VARCHAR(200) NOT NULL,
     tipo VARCHAR(100) DEFAULT 'institucional',
     descripcion TEXT,
+    fecha DATE,
     imagen_url VARCHAR(500),
     enlace_id INT REFERENCES enlaces(id) ON DELETE SET NULL,
     orden INT DEFAULT 0,
@@ -176,9 +177,9 @@ INSERT INTO enlaces (titulo, url, descripcion) VALUES
 ('Correo Institucional', 'http://oti.servicios.unap.edu.pe/', 'Ver mas');
 
 -- Actividades de ejemplo (sin enlace por defecto)
-INSERT INTO actividades (titulo, descripcion, imagen_url, orden) VALUES
-('Toma de Imágenes para Carnet Universitario 2025', 'La UNA Puno realizó la toma de fotografías para el carné universitario en el Edificio de 15 pisos.', '/assets/img/notis/foto02.jpg', 1),
-('Implementación del Sistema de Firma Digital', 'La OTI implementó el nuevo sistema de firma digital para la UNA Puno.', '/assets/img/notis/foto04.jpg', 2);
+INSERT INTO actividades (titulo, descripcion, fecha, imagen_url, orden) VALUES
+('Toma de Imágenes para Carnet Universitario 2025', 'La UNA Puno realizó la toma de fotografías para el carné universitario en el Edificio de 15 pisos.', '2025-03-15', '/assets/img/notis/foto02.jpg', 1),
+('Implementación del Sistema de Firma Digital', 'La OTI implementó el nuevo sistema de firma digital para la UNA Puno.', '2025-06-01', '/assets/img/notis/foto04.jpg', 2);
 
 -- Plana directiva de ejemplo
 INSERT INTO plana_directiva (nombre, cargo, descripcion, foto_url, orden) VALUES
@@ -214,3 +215,13 @@ GRANT ALL ON TABLE servicios TO oti_admin;
 GRANT ALL ON TABLE unidades TO oti_admin;
 GRANT ALL ON TABLE documentos TO oti_admin;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO oti_admin;
+
+----------------------------------------------------
+-- Migraciones (seguras para BD existentes)
+----------------------------------------------------
+ALTER TABLE actividades ADD COLUMN IF NOT EXISTS fecha DATE;
+INSERT INTO configuracion (clave, valor, tipo, descripcion) VALUES
+('firma_windows_name', '', 'string', 'Nombre original instalador Windows'),
+('firma_linux_name', '', 'string', 'Nombre original instalador Linux'),
+('firma_mac_name', '', 'string', 'Nombre original instalador Mac')
+ON CONFLICT (clave) DO NOTHING;
