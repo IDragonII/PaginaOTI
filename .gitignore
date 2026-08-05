@@ -6,7 +6,6 @@ graphify-dom.ps1
 
 # === Compiled Java ===
 *.class
-!WEB-INF/classes/**/*.class
 
 # === User-uploaded content (UUID files) ===
 assets/img/notis/
