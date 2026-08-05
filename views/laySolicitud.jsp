@@ -66,6 +66,23 @@
 
     .sol-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 576px) { .sol-row-2 { grid-template-columns: 1fr; } }
+
+    .sol-firma-section { margin-top: 16px; }
+    .sol-firma-card { border: 1px solid #BAE6FD; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 16px rgba(8,145,178,0.08); }
+    .sol-firma-header { background: linear-gradient(135deg, #F0F9FF, #E0F2FE); padding: 14px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #BAE6FD; }
+    .sol-firma-header h3 { font-size: 14px; font-weight: 700; color: #0F172A; margin: 0; }
+    .sol-firma-info { padding: 12px 16px; font-size: 12px; color: #475569; border-bottom: 1px solid #E2E8F0; }
+    .sol-firma-pdf { width: 100%; height: 420px; border: none; }
+    .sol-firma-status { padding: 10px 16px; font-size: 12px; color: #64748B; text-align: center; }
+    .sol-firma-actions { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #E2E8F0; }
+    .sol-firma-btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .sol-firma-btn-primary { background: #0891B2; color: #fff; }
+    .sol-firma-btn-primary:hover { background: #0E7490; }
+    .sol-firma-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .sol-firma-btn-success { background: #10B981; color: #fff; }
+    .sol-firma-btn-success:hover { background: #059669; }
+    .sol-firma-btn-outline { background: #fff; color: #475569; border: 1px solid #E2E8F0; }
+    .sol-firma-btn-outline:hover { background: #F8FAFC; }
 </style>
 
 <div class="sol-wrapper">
@@ -264,6 +281,35 @@
     </div>
 </div>
 
+<!-- FirmaUNA Section: se muestra despues de crear el ticket si hay pdf_fut -->
+<div class="sol-firma-section" id="firmaSection" style="display:none;">
+    <div class="sol-firma-card">
+        <div class="sol-firma-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <h3 id="firmaTitulo">FUT - Formulario Unico de Tramite</h3>
+        </div>
+        <div class="sol-firma-info" id="firmaInfo"></div>
+        <iframe id="firmaPdfViewer" class="sol-firma-pdf" src="about:blank"></iframe>
+        <div class="sol-firma-status" id="firmaStatus"></div>
+        <div class="sol-firma-actions" id="firmaActions">
+            <button type="button" class="sol-firma-btn sol-firma-btn-primary" id="btnFirmar" onclick="iniciarFirma()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                Firmar con FirmaUNA
+            </button>
+            <button type="button" class="sol-firma-btn sol-firma-btn-success" id="btnEnviarFirmado" onclick="enviarPDFFirmado()" style="display:none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                Enviar FUT Firmado
+            </button>
+            <button type="button" class="sol-firma-btn sol-firma-btn-outline" id="btnOmitirFirma" onclick="omitirFirma()">
+                Omitir firma
+            </button>
+            <button type="button" class="sol-firma-btn sol-firma-btn-outline" id="btnNuevaSolicitud" onclick="nuevaSolicitud()" style="display:none;">
+                Nueva solicitud
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 var personaData = null;
 
@@ -319,6 +365,24 @@ function consultarDNI() {
         .then(function(res) {
             if (res.status === 200 && res.body.data) {
                 personaData = res.body.data;
+
+                // Verificar si tiene ticket ESPERANDO_FIRMA → mostrar PDF para firmar
+                var ticketPendiente = personaData.ticket_pendiente;
+                var pdfPendiente = personaData.pdf_pendiente;
+                if (ticketPendiente && ticketPendiente.estado === 'ESPERANDO_FIRMA' && pdfPendiente && pdfPendiente.length > 100) {
+                    document.getElementById('personaFields').style.display = 'block';
+                    document.getElementById('personaNombre').textContent =
+                        (res.body.data.nombres || '').split(' ')[0] + ' ' + (res.body.data.apellidos || '').split(' ')[0];
+                    document.getElementById('personaAvatar').textContent =
+                        (res.body.data.nombres || '').charAt(0);
+                    feedback.className = 'dni-feedback dni-success';
+                    feedback.innerHTML = '&#10003; Persona encontrada — Tiene un FUT pendiente de firma';
+                    btn.textContent = 'Consultado';
+                    document.getElementById('dni').readOnly = true;
+                    showFirmaSection(ticketPendiente.codigo || '', pdfPendiente);
+                    return;
+                }
+
                 if (personaData.tickets_activos && personaData.tickets_activos > 0) {
                     var activos = personaData.tickets_activos;
                     feedback.className = 'dni-feedback dni-error';
@@ -485,6 +549,10 @@ function enviarSolicitud() {
             showNotif('info', 'Atencion', 'Primero consulte el DNI');
             return;
         }
+        if (personaData.ticket_pendiente && personaData.ticket_pendiente.estado === 'ESPERANDO_FIRMA' && personaData.pdf_pendiente && personaData.pdf_pendiente.length > 100) {
+            showFirmaSection(personaData.ticket_pendiente.codigo || '', personaData.pdf_pendiente);
+            return;
+        }
         if (personaData.tickets_activos && personaData.tickets_activos > 0) {
             showNotif('error', 'Ticket activo', 'Ya tiene un ticket activo pendiente. No puede generar otro.');
             return;
@@ -503,6 +571,10 @@ function enviarSolicitud() {
     } else {
         if (!personaData) {
             showNotif('info', 'Atencion', 'Primero consulte el DNI');
+            return;
+        }
+        if (personaData.ticket_pendiente && personaData.ticket_pendiente.estado === 'ESPERANDO_FIRMA' && personaData.pdf_pendiente && personaData.pdf_pendiente.length > 100) {
+            showFirmaSection(personaData.ticket_pendiente.codigo || '', personaData.pdf_pendiente);
             return;
         }
         if (personaData.tickets_activos && personaData.tickets_activos > 0) {
@@ -580,10 +652,16 @@ function enviarSolicitud() {
     .then(function(res) {
         if (res.status === 201) {
             var codigo = res.body.data ? res.body.data.codigo : '';
+            var pdfFut = res.body.data ? (res.body.data.pdf_fut || '') : '';
             var correoDestino = personaData ? personaData.correo || '' : '';
-            var extra = correoDestino ? 'El comprobante PDF sera enviado a ' + correoDestino : '';
-            showNotif('success', 'Solicitud registrada', 'Codigo: ' + codigo + '. ' + extra);
-            limpiarForm();
+
+            if (pdfFut && pdfFut.length > 100) {
+                showFirmaSection(codigo, pdfFut);
+            } else {
+                var extra = correoDestino ? 'El comprobante PDF sera enviado a ' + correoDestino : '';
+                showNotif('success', 'Solicitud registrada', 'Codigo: ' + codigo + '. ' + extra);
+                limpiarForm();
+            }
         } else {
             var msgErr = res.body.message || res.body.mensaje || 'Error al crear solicitud';
             if (res.body.errors) {
@@ -743,4 +821,154 @@ function showFileInfo(files) {
     });
     fileInput.addEventListener('change', function() { if (fileInput.files.length) showFileInfo(fileInput.files); });
 })();
+</script>
+
+<script>
+var firmaSessionId = null;
+var firmaCodigo = null;
+var firmaSentinelTimer = null;
+
+function showFirmaSection(codigo, pdfFut) {
+    firmaCodigo = codigo;
+
+    document.getElementById('formSolicitud').style.display = 'none';
+    document.getElementById('firmaInfo').innerHTML = '<b>Ticket:</b> ' + codigo;
+    document.getElementById('firmaPdfViewer').src = 'data:application/pdf;base64,' + pdfFut;
+
+    document.getElementById('firmaStatus').innerHTML = '';
+    document.getElementById('btnFirmar').style.display = '';
+    document.getElementById('btnFirmar').disabled = false;
+    document.getElementById('btnEnviarFirmado').style.display = 'none';
+    document.getElementById('btnOmitirFirma').style.display = '';
+    document.getElementById('btnNuevaSolicitud').style.display = 'none';
+    document.getElementById('firmaSection').style.display = 'block';
+}
+
+function Base64Enc(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+
+function iniciarFirma() {
+    var pdfViewer = document.getElementById('firmaPdfViewer');
+    var pdfBase64 = '';
+    try {
+        var src = pdfViewer.src;
+        if (src && src.indexOf('data:application/pdf;base64,') === 0) {
+            pdfBase64 = src.substring(28);
+        }
+    } catch(e) {}
+
+    if (!pdfBase64) {
+        showNotif('error', 'Error', 'No se pudo obtener el PDF para firmar');
+        return;
+    }
+
+    var btn = document.getElementById('btnFirmar');
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Preparando...';
+    document.getElementById('firmaStatus').innerHTML = 'Preparando documento para firma...';
+
+    var fd = new FormData();
+    fd.append('pdf_base64', pdfBase64);
+    fd.append('codigo_ticket', firmaCodigo);
+
+    fetch('/views/api/firmauna-setup.jsp', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (!res.success) {
+                throw new Error(res.error || 'Error al preparar firma');
+            }
+            firmaSessionId = res.session_id;
+
+            document.getElementById('firmaStatus').innerHTML = 'Abriendo FirmaUNA Desktop...';
+            btn.innerHTML = 'Esperando firma...';
+
+            var urlInvoke = 'service=sign'
+                + '&id=' + res.id
+                + '&host=' + res.host
+                + '&down=' + res.down
+                + '&up=' + res.up;
+            var protocolUrl = 'zanfirmauna:' + Base64Enc(urlInvoke);
+            window.location.href = protocolUrl;
+
+            iniciarPolling(res.sentinel_url);
+        })
+        .catch(function(e) {
+            showNotif('error', 'Error', e.message || 'No se pudo iniciar la firma');
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Firmar con FirmaUNA';
+            document.getElementById('firmaStatus').innerHTML = '';
+        });
+}
+
+function iniciarPolling(sentinelUrl) {
+    if (firmaSentinelTimer) clearInterval(firmaSentinelTimer);
+
+    firmaSentinelTimer = setInterval(function() {
+        fetch(sentinelUrl)
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                if (res.state === true || res.status === 'COMPLETE') {
+                    clearInterval(firmaSentinelTimer);
+                    firmaSentinelTimer = null;
+                    onFirmaCompleta();
+                }
+            })
+            .catch(function() {});
+    }, 3000);
+}
+
+function onFirmaCompleta() {
+    document.getElementById('firmaPdfViewer').src = '/views/api/firmauna-display.jsp?sid=' + firmaSessionId + '&t=' + Date.now();
+    document.getElementById('firmaStatus').innerHTML = '&#10003; Documento firmado correctamente';
+    document.getElementById('firmaStatus').style.color = '#10B981';
+    document.getElementById('btnFirmar').style.display = 'none';
+    document.getElementById('btnEnviarFirmado').style.display = '';
+    document.getElementById('btnOmitirFirma').style.display = 'none';
+    document.getElementById('btnNuevaSolicitud').style.display = '';
+}
+
+function enviarPDFFirmado() {
+    var btn = document.getElementById('btnEnviarFirmado');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    document.getElementById('firmaStatus').innerHTML = 'Enviando FUT firmado...';
+    document.getElementById('firmaStatus').style.color = '#64748B';
+
+    var fd = new FormData();
+    fd.append('sid', firmaSessionId);
+    fd.append('codigo_ticket', firmaCodigo);
+
+    fetch('/views/api/enviar-firmado.jsp', { method: 'POST', body: fd })
+        .then(function(r) { return r.json().then(function(d) { return { status: r.status, body: d }; }); })
+        .then(function(res) {
+            if (res.status >= 200 && res.status < 300 && res.body.success !== false) {
+                document.getElementById('firmaStatus').innerHTML = '&#10003; FUT firmado enviado correctamente';
+                document.getElementById('firmaStatus').style.color = '#10B981';
+                btn.style.display = 'none';
+                showNotif('success', 'Firma enviada', 'El FUT firmado fue enviado. El comprobante sera recibido por correo.');
+            } else {
+                throw new Error(res.body.error || res.body.message || 'Error al enviar');
+            }
+        })
+        .catch(function(e) {
+            document.getElementById('firmaStatus').innerHTML = 'Error al enviar: ' + e.message;
+            document.getElementById('firmaStatus').style.color = '#DC3545';
+            btn.disabled = false;
+            btn.textContent = 'Enviar FUT Firmado';
+        });
+}
+
+function omitirFirma() {
+    document.getElementById('firmaSection').style.display = 'none';
+    document.getElementById('firmaStatus').style.color = '#64748B';
+    limpiarForm();
+    showNotif('info', 'Solicitud registrada', 'La solicitud fue registrada sin firma digital.');
+}
+
+function nuevaSolicitud() {
+    document.getElementById('firmaSection').style.display = 'none';
+    document.getElementById('firmaStatus').style.color = '#64748B';
+    limpiarForm();
+}
 </script>
